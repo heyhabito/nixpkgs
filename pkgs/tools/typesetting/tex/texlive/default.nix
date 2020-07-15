@@ -24,7 +24,7 @@ let
 
   # function for creating a working environment from a set of TL packages
   combine = import ./combine.nix {
-    inherit bin combinePkgs buildEnv fastUnique lib makeWrapper writeText
+    inherit bin combinePkgs buildEnv lib makeWrapper writeText
       stdenv python ruby perl;
     ghostscript = ghostscriptX; # could be without X, probably, but we use X above
   };
@@ -108,9 +108,6 @@ let
       # Common packages should get served from the binary cache anyway.
       # See discussions, e.g. https://github.com/NixOS/nixpkgs/issues/24683
       urlPrefixes = args.urlPrefixes or [
-        # XXX PATCH: This appears to be the only reliable mirror of the source
-        # code backing the distribution we use, so we patch this set of URL
-        # prefixes to use it exclusively.
         http://ftp.math.utah.edu/pub/tex/historic/systems/texlive/2018/tlnet-final/archive
       ];
 
@@ -157,12 +154,6 @@ let
   # combine a set of TL packages into a single TL meta-package
   combinePkgs = pkgSet: lib.concatLists # uniqueness is handled in `combine`
     (lib.mapAttrsToList (_n: a: a.pkgs) pkgSet);
-
-  # TODO: replace by buitin once it exists
-  fastUnique = comparator: list: with lib;
-    let un_adj = l: if length l < 2 then l
-      else optional (head l != elemAt l 1) (head l) ++ un_adj (tail l);
-    in un_adj (lib.sort comparator list);
 
 in
   tl // {
